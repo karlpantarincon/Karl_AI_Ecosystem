@@ -1,0 +1,1 @@
+"""CoreHub API routes module."""

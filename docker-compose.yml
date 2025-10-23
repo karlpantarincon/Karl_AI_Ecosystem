@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: karl-postgres
+    environment:
+      POSTGRES_DB: karl_ecosystem
+      POSTGRES_USER: karl
+      POSTGRES_PASSWORD: karl_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U karl -d karl_ecosystem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - karl-network
+
+  # CoreHub API
+  corehub:
+    build: .
+    container_name: karl-corehub
+    environment:
+      POSTGRES_URL: postgresql://karl:karl_password@postgres:5432/karl_ecosystem
+      SYSTEM_TIMEZONE: America/Lima
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    networks:
+      - karl-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # DevAgent (opcional, para desarrollo)
+  devagent:
+    build: .
+    container_name: karl-devagent
+    environment:
+      POSTGRES_URL: postgresql://karl:karl_password@postgres:5432/karl_ecosystem
+      COREHUB_BASE_URL: http://corehub:8000
+      DEVAGENT_MAX_RUNTIME_SECONDS: 120
+      DEVAGENT_COST_PER_HOUR_USD: 0.50
+    depends_on:
+      corehub:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    networks:
+      - karl-network
+    restart: "no"
+    command: ["python", "-m", "agents.devagent.app.main", "loop", "--interval", "300"]
+    profiles:
+      - dev
+
+  # Redis (para futuras funcionalidades)
+  redis:
+    image: redis:7-alpine
+    container_name: karl-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - karl-network
+    profiles:
+      - cache
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  karl-network:
+    driver: bridge

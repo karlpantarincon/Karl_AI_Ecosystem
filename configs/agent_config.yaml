@@ -1,0 +1,46 @@
+name: DevAgent
+role: "Desarrollador backend/automatizador"
+mission: "Implementar tareas del CoreHub en código productivo (FastAPI, jobs, tests, docs)."
+
+scope:
+  include: 
+    - "APIs internas"
+    - "tests"
+    - "docs"
+    - "scripts"
+    - "migraciones de base de datos"
+  exclude: 
+    - "deploy prod"
+    - "acciones con costo"
+    - "configuraciones de seguridad"
+
+guardrails:
+  cost_per_hour_usd_max: 0.50
+  max_runtime_sec: 120
+  max_concurrent_tasks: 1
+  approval_required:
+    - "deploy prod"
+    - "modificar configuraciones críticas"
+    - "acceso a datos sensibles"
+
+telemetry:
+  logging: "json"
+  heartbeat_minutes: 5
+  metrics_collection: true
+
+workflow:
+  task_fetch_interval: 300  # seconds
+  retry_attempts: 3
+  backoff_multiplier: 2
+  
+output_format:
+  plan: true
+  actions: true
+  result: true
+  next: true
+
+quality_checks:
+  run_tests: true
+  run_lint: true
+  check_coverage: true
+  min_coverage: 70

@@ -1,0 +1,49 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production # Or staging, depending on the branch
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11" # Use a fixed Python version for deployment
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install dependencies
+      run: poetry install --no-root
+
+    - name: Build and push Docker image (Optional, if using Docker)
+      # This step would involve building your Docker image and pushing it to a registry
+      # For now, we'll skip it as we're focusing on local deployment without Docker
+      run: echo "Skipping Docker build for now."
+
+    - name: Deploy to server
+      # This is a placeholder for your actual deployment logic
+      # e.g., SSH into your server and run deployment scripts
+      run: |
+        echo "Deploying to production server..."
+        # Example: ssh user@your-server.com "cd /path/to/app && git pull && poetry install && systemctl restart corehub && systemctl restart devagent"
+        echo "Deployment successful!"
+
+    - name: Run post-deployment health checks
+      run: |
+        echo "Running health checks after deployment..."
+        # Example: curl http://your-production-api.com/health
+        echo "Health checks passed."
+
+    - name: Send deployment notification
+      # This could integrate with Slack, email, etc.
+      run: echo "Deployment notification sent."

@@ -1,0 +1,30 @@
+{
+  "v": 1,
+  "sprint": "2025-10-23",
+  "goals": [
+    "Test goals"
+  ],
+  "tasks": [
+    {
+      "id": "T-101",
+      "title": "Test task 1",
+      "prio": 1,
+      "type": "dev",
+      "status": "done",
+      "acceptance": [
+        "test criteria"
+      ],
+      "updated_at": "2025-10-22T20:45:00Z"
+    },
+    {
+      "id": "T-102",
+      "title": "Test task 2",
+      "prio": 2,
+      "type": "ops",
+      "status": "todo",
+      "acceptance": [
+        "test criteria 2"
+      ]
+    }
+  ]
+}

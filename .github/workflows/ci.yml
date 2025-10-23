@@ -1,0 +1,55 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      run: pip install poetry
+
+    - name: Install dependencies
+      run: poetry install --no-root
+
+    - name: Run tests with coverage
+      run: poetry run pytest --cov=corehub --cov=agents --cov-report=xml --cov-report=term-missing
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
+
+    - name: Run linting (ruff)
+      run: poetry run ruff check .
+
+    - name: Run type checking (mypy)
+      run: poetry run mypy .
+
+    - name: Check code format (black)
+      run: poetry run black --check .
+
+    - name: Validate system script
+      run: chmod +x scripts/validate.sh && ./scripts/validate.sh

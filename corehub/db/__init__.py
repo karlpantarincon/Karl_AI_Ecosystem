@@ -1,0 +1,1 @@
+"""Database module for CoreHub with SQLAlchemy models and migrations."""
