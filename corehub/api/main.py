@@ -1,5 +1,5 @@
 """
-CoreHub FastAPI application.
+CoreHub FastAPI application optimized for v0.dev integration.
 
 This is the main FastAPI application that provides:
 - Health checks
@@ -7,6 +7,9 @@ This is the main FastAPI application that provides:
 - Event logging
 - Daily reports
 - Admin controls
+- Dashboard APIs for React frontend
+- WebSocket real-time updates
+- Comprehensive API documentation
 """
 
 import os
@@ -15,7 +18,6 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -30,6 +32,9 @@ else:
 from corehub.db.database import create_tables, check_db_connection
 from corehub.scheduler.jobs import start_scheduler, stop_scheduler
 from corehub.api.routes import health, tasks, events, report, admin
+from corehub.api.routes.dashboard import router as dashboard_router
+from corehub.api.websocket import router as websocket_router
+from corehub.api.middleware import setup_all_middleware
 
 
 @asynccontextmanager
@@ -60,57 +65,88 @@ async def lifespan(app: FastAPI):
     logger.info("Scheduler stopped")
 
 
-# Create FastAPI application
+# Create FastAPI application optimized for v0.dev
 app = FastAPI(
-    title="CoreHub API",
+    title="CoreHub API - v0.dev Ready",
     description="""
-    ## CoreHub API
+    ## CoreHub API - Optimized for React/v0.dev Integration
     
-    Sistema de gestión de tareas y agentes para el ecosistema Karl AI.
+    Sistema de gestión de tareas y agentes para el ecosistema Karl AI con APIs optimizadas para frontend moderno.
     
-    ### Características principales:
-    - **Gestión de tareas**: Crear, actualizar y monitorear tareas del kanban
-    - **Ejecución de agentes**: Controlar y monitorear la ejecución de agentes
-    - **Eventos del sistema**: Registrar y consultar eventos del sistema
-    - **Reportes**: Generar reportes de actividad y métricas
-    - **Administración**: Controlar el estado del sistema
+    ### 🚀 Características principales:
+    - **Dashboard APIs**: Endpoints específicos para componentes React
+    - **WebSockets**: Datos en tiempo real para dashboards
+    - **Gestión de tareas**: CRUD completo con validaciones Pydantic
+    - **Ejecución de agentes**: Control y monitoreo en tiempo real
+    - **Eventos del sistema**: Logging estructurado y consultas
+    - **Reportes**: Métricas y analytics para dashboards
+    - **Administración**: Control completo del sistema
     
-    ### Autenticación
-    Actualmente no se requiere autenticación para el desarrollo.
+    ### 🔌 Integración v0.dev:
+    - **CORS configurado**: Para desarrollo local y producción
+    - **Schemas optimizados**: Para componentes React
+    - **WebSockets**: Para actualizaciones en tiempo real
+    - **Documentación OpenAPI**: Para generación automática de clientes
     
-    ### Límites de tasa
-    - Máximo 1000 requests por hora por IP
-    - Timeout de 30 segundos por request
+    ### 🔒 Seguridad:
+    - Rate limiting: 1000 requests/minuto por IP
+    - Security headers: HSTS, CSP, XSS protection
+    - Request validation: Tamaño y formato
+    - Error handling: Respuestas consistentes
     
-    ### Códigos de estado
-    - `200`: Operación exitosa
-    - `400`: Error en la petición
-    - `404`: Recurso no encontrado
-    - `422`: Error de validación
-    - `500`: Error interno del servidor
+    ### 📊 Endpoints Dashboard:
+    - `GET /dashboard/overview` - Vista general del sistema
+    - `GET /dashboard/tasks` - Lista de tareas con filtros
+    - `GET /dashboard/metrics` - Métricas para gráficos
+    - `GET /dashboard/logs` - Logs del sistema
+    - `GET /dashboard/agents` - Estado de agentes
+    - `POST /dashboard/tasks/{id}/status` - Actualizar estado
+    - `POST /dashboard/agents/{name}/control` - Control de agentes
+    
+    ### 🌐 WebSockets:
+    - `WS /ws/dashboard` - Updates del dashboard
+    - `WS /ws/logs` - Stream de logs en tiempo real
+    - `WS /ws/metrics` - Métricas en tiempo real
+    
+    ### 📝 Autenticación:
+    Actualmente no se requiere autenticación para desarrollo.
+    Para producción, configurar JWT o API keys.
+    
+    ### 🎯 Uso con v0.dev:
+    1. Clona este repositorio
+    2. Ejecuta `poetry install && poetry run uvicorn corehub.api.main:app --reload`
+    3. Accede a `/docs` para ver la documentación interactiva
+    4. Usa los endpoints dashboard para tu frontend React
+    5. Conecta WebSockets para datos en tiempo real
     """,
-    version="1.0.0",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_url="/openapi.json",
     lifespan=lifespan,
     contact={
         "name": "Karl AI Ecosystem",
-        "url": "https://github.com/karl-ai/ecosystem",
+        "url": "https://github.com/karlpantarincon/Karl_AI_Ecosystem",
+        "email": "karl@example.com",
     },
     license_info={
         "name": "MIT",
         "url": "https://opensource.org/licenses/MIT",
     },
+    servers=[
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server"
+        },
+        {
+            "url": "https://api.karl-ai.com",
+            "description": "Production server"
+        }
+    ]
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Setup all middleware for production-ready API
+setup_all_middleware(app)
 
 # Include routers
 app.include_router(health.router, prefix="/health", tags=["health"])
@@ -119,21 +155,55 @@ app.include_router(events.router, prefix="/events", tags=["events"])
 app.include_router(report.router, prefix="/report", tags=["reports"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 
+# Include new dashboard and WebSocket routers
+app.include_router(dashboard_router, tags=["dashboard"])
+app.include_router(websocket_router, tags=["websockets"])
 
-@app.get("/")
+
+@app.get("/", tags=["root"])
 async def root():
-    """Root endpoint with API information."""
+    """Root endpoint with comprehensive API information."""
     return {
-        "name": "CoreHub API",
-        "version": "0.1.0",
-        "description": "El cerebro del ecosistema Karl AI",
+        "name": "CoreHub API - v0.dev Ready",
+        "version": "2.0.0",
+        "description": "El cerebro del ecosistema Karl AI - Optimizado para React/v0.dev",
         "timestamp": datetime.utcnow().isoformat(),
+        "status": "healthy",
+        "features": [
+            "Dashboard APIs para React",
+            "WebSockets en tiempo real",
+            "Documentación OpenAPI completa",
+            "Middleware de seguridad",
+            "Validaciones Pydantic",
+            "Rate limiting",
+            "CORS configurado para v0.dev"
+        ],
         "endpoints": {
             "health": "/health",
             "tasks": "/tasks",
             "events": "/events", 
             "reports": "/report",
             "admin": "/admin",
+            "dashboard": "/dashboard",
+            "websockets": "/ws",
+            "docs": "/docs",
+            "openapi": "/openapi.json"
+        },
+        "websockets": {
+            "dashboard": "/ws/dashboard",
+            "logs": "/ws/logs",
+            "metrics": "/ws/metrics"
+        },
+        "documentation": {
+            "swagger_ui": "/docs",
+            "redoc": "/redoc",
+            "openapi_spec": "/openapi.json"
+        },
+        "integration": {
+            "v0_dev_ready": True,
+            "react_optimized": True,
+            "cors_enabled": True,
+            "realtime_updates": True
         }
     }
 
