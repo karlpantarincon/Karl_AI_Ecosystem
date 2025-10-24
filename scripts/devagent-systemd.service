@@ -1,0 +1,42 @@
+[Unit]
+Description=Karl AI DevAgent Service
+Documentation=https://github.com/your-repo/karl-ai-ecosystem
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=devagent
+Group=devagent
+WorkingDirectory=/opt/karl-ai-ecosystem
+ExecStart=/opt/karl-ai-ecosystem/venv/bin/python devagent-service.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=devagent
+
+# Environment variables
+Environment=ENVIRONMENT=production
+Environment=DEVAGENT_INTERVAL=300
+Environment=DEVAGENT_MAX_TASKS=100
+Environment=DEVAGENT_PRIORITY=1
+Environment=COREHUB_URL=http://localhost:8000
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/karl-ai-ecosystem
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

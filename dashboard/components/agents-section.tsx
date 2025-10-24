@@ -6,14 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { Play, Square, Pause } from "lucide-react"
-
-interface Agent {
-  id: string
-  name: string
-  status: "running" | "stopped" | "paused"
-  last_heartbeat: string
-  tasks_completed_24h: number
-}
+import { apiClient, Agent, isApiError, getErrorMessage } from "@/lib/api"
+import { API_CONFIG } from "@/config/api"
 
 export function AgentsSection() {
   const { toast } = useToast()
@@ -23,14 +17,17 @@ export function AgentsSection() {
   const fetchAgents = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost:8000/dashboard/agents")
-      if (!response.ok) throw new Error("Error al obtener agentes")
-      const data = await response.json()
-      setAgents(Array.isArray(data.agents) ? data.agents : [])
+      const response = await apiClient.getAgents()
+      
+      if (isApiError(response)) {
+        throw new Error(getErrorMessage(response))
+      }
+      
+      setAgents(Array.isArray(response.data?.agents) ? response.data.agents : [])
     } catch (error) {
       toast({
         title: "Error",
-        description: "Error al obtener agentes",
+        description: error instanceof Error ? error.message : "Error al obtener agentes",
         variant: "destructive",
       })
       setAgents([])
@@ -41,7 +38,7 @@ export function AgentsSection() {
 
   useEffect(() => {
     fetchAgents()
-    const interval = setInterval(fetchAgents, 30000)
+    const interval = setInterval(fetchAgents, API_CONFIG.REFRESH_INTERVALS.AGENTS)
 
     const handleRefresh = () => fetchAgents()
     window.addEventListener("dashboard-refresh", handleRefresh)

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, CheckCircle2, Clock, Zap, TrendingUp, DollarSign } from "lucide-react"
+import { apiClient, DashboardOverview, Metrics, isApiError, getErrorMessage } from "@/lib/api"
+import { API_CONFIG } from "@/config/api"
 
 interface MetricsData {
   total_tasks: number
@@ -22,18 +24,22 @@ export function MetricsCards() {
     try {
       setLoading(true)
       const [overviewRes, tasksRes, metricsRes] = await Promise.all([
-        fetch("http://localhost:8000/dashboard/overview"),
-        fetch("http://localhost:8000/dashboard/tasks"),
-        fetch("http://localhost:8000/dashboard/metrics"),
+        apiClient.getDashboardOverview(),
+        apiClient.getTasks(),
+        apiClient.getMetrics(),
       ])
 
-      if (!overviewRes.ok || !tasksRes.ok || !metricsRes.ok) {
-        throw new Error("Error al obtener métricas")
+      // Check for API errors
+      if (isApiError(overviewRes) || isApiError(tasksRes) || isApiError(metricsRes)) {
+        const errorMsg = isApiError(overviewRes) ? getErrorMessage(overviewRes) :
+                        isApiError(tasksRes) ? getErrorMessage(tasksRes) :
+                        getErrorMessage(metricsRes)
+        throw new Error(errorMsg)
       }
 
-      const overview = await overviewRes.json()
-      const tasks = await tasksRes.json()
-      const metricsData = await metricsRes.json()
+      const overview = overviewRes.data!
+      const tasks = tasksRes.data!
+      const metricsData = metricsRes.data!
 
       setMetrics({
         total_tasks: tasks.total || 0,
@@ -54,7 +60,7 @@ export function MetricsCards() {
 
   useEffect(() => {
     fetchMetrics()
-    const interval = setInterval(fetchMetrics, 30000)
+    const interval = setInterval(fetchMetrics, API_CONFIG.REFRESH_INTERVALS.METRICS)
 
     const handleRefresh = () => fetchMetrics()
     window.addEventListener("dashboard-refresh", handleRefresh)

@@ -4,8 +4,20 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "uvicorn corehub.api.main:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "sh -c 'uvicorn corehub.api.main:app --host 0.0.0.0 --port $PORT'",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 10,
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 300
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "ENVIRONMENT": "production",
+        "LOG_LEVEL": "INFO",
+        "NOTIFICATION_LOG_ENABLED": "true",
+        "API_HOST": "0.0.0.0"
+      }
+    }
   }
 }

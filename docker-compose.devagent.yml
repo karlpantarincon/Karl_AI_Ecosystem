@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  devagent:
+    build: .
+    container_name: karl-ai-devagent
+    command: ["python", "devagent-service.py"]
+    environment:
+      - ENVIRONMENT=production
+      - COREHUB_URL=http://corehub:8000
+      - DEVAGENT_INTERVAL=300
+      - DEVAGENT_MAX_TASKS=100
+      - DEVAGENT_PRIORITY=1
+      - DATABASE_URL=postgresql://karl_ai_db_user:ezn3WjgVE1O7VE8OArBo81hjGRcyriKZ@dpg-d3tcmtf5r7bs73en3ed0-a/karl_ai_db
+    depends_on:
+      - corehub
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    networks:
+      - karl-ai-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # CoreHub service (referencia)
+  corehub:
+    build: .
+    container_name: karl-ai-corehub
+    command: ["uvicorn", "corehub.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://karl_ai_db_user:ezn3WjgVE1O7VE8OArBo81hjGRcyriKZ@dpg-d3tcmtf5r7bs73en3ed0-a/karl_ai_db
+    restart: unless-stopped
+    networks:
+      - karl-ai-network
+
+networks:
+  karl-ai-network:
+    driver: bridge
+
+volumes:
+  devagent-logs:
+  devagent-reports:

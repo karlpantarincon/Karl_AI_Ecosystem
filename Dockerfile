@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 8000
 
 # Comando de inicio (Railway usa $PORT)
-CMD ["uvicorn", "corehub.api.main:app", "--host", "0.0.0.0", "--port", "$PORT"]
+CMD ["sh", "-c", "uvicorn corehub.api.main:app --host 0.0.0.0 --port $PORT"]

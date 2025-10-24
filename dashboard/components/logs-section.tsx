@@ -5,18 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { AlertCircle, AlertTriangle, Info } from "lucide-react"
-
-interface Log {
-  id: string
-  timestamp: string
-  level: "INFO" | "WARNING" | "ERROR"
-  agent: string
-  message: string
-}
+import { apiClient, LogEntry, isApiError, getErrorMessage } from "@/lib/api"
+import { API_CONFIG } from "@/config/api"
 
 export function LogsSection() {
   const { toast } = useToast()
-  const [logs, setLogs] = useState<Log[]>([])
+  const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     level: "all" as string,
@@ -29,14 +23,17 @@ export function LogsSection() {
   const fetchLogs = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost:8000/dashboard/logs")
-      if (!response.ok) throw new Error("Error al obtener registros")
-      const data = await response.json()
-      setLogs(Array.isArray(data.logs) ? data.logs : [])
+      const response = await apiClient.getLogs(100)
+      
+      if (isApiError(response)) {
+        throw new Error(getErrorMessage(response))
+      }
+      
+      setLogs(Array.isArray(response.data?.logs) ? response.data.logs : [])
     } catch (error) {
       toast({
         title: "Error",
-        description: "Error al obtener registros",
+        description: error instanceof Error ? error.message : "Error al obtener registros",
         variant: "destructive",
       })
       setLogs([])
@@ -47,7 +44,7 @@ export function LogsSection() {
 
   useEffect(() => {
     fetchLogs()
-    const interval = setInterval(fetchLogs, 30000)
+    const interval = setInterval(fetchLogs, API_CONFIG.REFRESH_INTERVALS.LOGS)
 
     const handleRefresh = () => fetchLogs()
     window.addEventListener("dashboard-refresh", handleRefresh)
@@ -60,14 +57,14 @@ export function LogsSection() {
 
   const filteredLogs = logs.filter((log) => {
     if (filters.level !== "all" && log.level !== filters.level) return false
-    if (filters.agent !== "all" && log.agent !== filters.agent) return false
+    if (filters.agent !== "all" && log.source !== filters.agent) return false
     if (filters.search && !log.message.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
   })
 
   const paginatedLogs = filteredLogs.slice((page - 1) * itemsPerPage, page * itemsPerPage)
 
-  const uniqueAgents = Array.from(new Set(logs.map((log) => log.agent)))
+  const uniqueAgents = Array.from(new Set(logs.map((log) => log.source)))
 
   const levelColors = {
     INFO: "bg-blue-500",
@@ -156,7 +153,7 @@ export function LogsSection() {
                         {log.level === "WARNING" && "Advertencia"}
                         {log.level === "ERROR" && "Error"}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">{log.agent}</span>
+                      <span className="text-xs text-muted-foreground">{log.source}</span>
                     </div>
                     <p className="text-sm text-foreground break-words">{log.message}</p>
                   </div>

@@ -6,14 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { Play, Pause, CheckCircle2 } from "lucide-react"
-
-interface Task {
-  id: string
-  name: string
-  status: "todo" | "in_progress" | "done" | "blocked"
-  type: "dev" | "ops" | "test"
-  priority: number
-}
+import { apiClient, Task, isApiError, getErrorMessage } from "@/lib/api"
+import { API_CONFIG } from "@/config/api"
 
 export function TasksSection() {
   const { toast } = useToast()
@@ -30,14 +24,17 @@ export function TasksSection() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost:8000/dashboard/tasks")
-      if (!response.ok) throw new Error("Error al obtener tareas")
-      const data = await response.json()
-      setTasks(Array.isArray(data.tasks) ? data.tasks : [])
+      const response = await apiClient.getTasks()
+      
+      if (isApiError(response)) {
+        throw new Error(getErrorMessage(response))
+      }
+      
+      setTasks(Array.isArray(response.data?.tasks) ? response.data.tasks : [])
     } catch (error) {
       toast({
         title: "Error",
-        description: "Error al obtener tareas",
+        description: error instanceof Error ? error.message : "Error al obtener tareas",
         variant: "destructive",
       })
       setTasks([])
@@ -48,7 +45,7 @@ export function TasksSection() {
 
   useEffect(() => {
     fetchTasks()
-    const interval = setInterval(fetchTasks, 30000)
+    const interval = setInterval(fetchTasks, API_CONFIG.REFRESH_INTERVALS.TASKS)
 
     const handleRefresh = () => fetchTasks()
     window.addEventListener("dashboard-refresh", handleRefresh)
