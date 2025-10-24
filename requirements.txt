@@ -1,7 +1,7 @@
-# Karl AI Ecosystem - Production Requirements (Optimized)
-# FastAPI + Pydantic stable versions for cloud deployment
+# Karl AI Ecosystem - Production Requirements (No Pydantic)
+# FastAPI without Pydantic for cloud deployment
 
-# Core FastAPI (stable versions)
+# Core FastAPI (without Pydantic)
 fastapi==0.103.2
 uvicorn[standard]==0.23.2
 
@@ -14,8 +14,7 @@ psycopg2-binary==2.9.9
 httpx==0.25.2
 websockets==12.0
 
-# Data Processing (stable Pydantic)
-pydantic==2.3.0
+# Data Processing (no Pydantic)
 python-multipart==0.0.6
 
 # Authentication

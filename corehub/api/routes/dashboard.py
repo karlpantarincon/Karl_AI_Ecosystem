@@ -14,6 +14,17 @@ from corehub.db.database import get_db
 from corehub.db.models import Task, Run, Event
 from corehub.services.cache import cached
 from corehub.services.notifications import create_notification_service
+from corehub.api.schemas import (
+    create_dashboard_overview_response,
+    create_task_response,
+    create_run_response,
+    create_event_response,
+    create_agent_response,
+    create_metrics_response,
+    create_log_response,
+    validate_task_request,
+    validate_agent_control_request
+)
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
