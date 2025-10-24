@@ -30,7 +30,6 @@ python-memcached==1.62
 
 # Notifications
 requests==2.31.0
-smtplib-ssl==1.0.0
 
 # Monitoring and Logging
 loguru==0.7.2
