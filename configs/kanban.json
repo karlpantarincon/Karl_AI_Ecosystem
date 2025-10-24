@@ -21,10 +21,11 @@
       "title": "Test task 2",
       "prio": 2,
       "type": "ops",
-      "status": "todo",
+      "status": "done",
       "acceptance": [
         "test criteria 2"
-      ]
+      ],
+      "updated_at": "2025-10-22T20:45:00Z"
     }
   ]
 }

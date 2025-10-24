@@ -29,6 +29,11 @@ if Path(env_file).exists():
 else:
     load_dotenv()  # Fallback to .env
 
+# Configuración específica para Render
+if os.getenv("RENDER"):
+    # En Render, usar variables de entorno directamente
+    logger.info("Running on Render.com - using environment variables")
+
 from corehub.db.database import create_tables, check_db_connection
 from corehub.scheduler.jobs import start_scheduler, stop_scheduler
 from corehub.api.routes import health, tasks, events, report, admin

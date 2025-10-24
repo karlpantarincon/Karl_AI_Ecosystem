@@ -1,12 +1,14 @@
-# Multi-stage build for Karl AI Ecosystem
-FROM python:3.11-slim as builder
+# Karl AI Ecosystem - Multi-stage Docker Build
+# Optimized for Render.com deployment
+
+# Stage 1: Base Python Environment
+FROM python:3.11-slim as base
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VENV_IN_PROJECT=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,47 +17,38 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN pip install poetry
+RUN pip install poetry==1.7.1
 
-# Set work directory
-WORKDIR /app
+# Configure Poetry
+RUN poetry config virtualenvs.create false
 
-# Copy Poetry files
-COPY pyproject.toml poetry.lock* ./
+# Stage 2: Dependencies
+FROM base as deps
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+COPY requirements.txt ./
 
 # Install dependencies
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --no-dev --no-interaction --no-ansi
+RUN pip install -r requirements.txt
 
-# Production stage
-FROM python:3.11-slim as production
+# Stage 3: Application
+FROM base as app
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH="/app/.venv/bin:$PATH"
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN groupadd -r karl && useradd -r -g karl karl
+# Copy dependencies from deps stage
+COPY --from=deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=deps /usr/local/bin /usr/local/bin
 
 # Set work directory
 WORKDIR /app
 
-# Copy virtual environment from builder stage
-COPY --from=builder --chown=karl:karl /app/.venv /app/.venv
-
 # Copy application code
-COPY --chown=karl:karl . .
+COPY . .
 
-# Create necessary directories
-RUN mkdir -p /app/logs /app/reports/daily /app/reports/prs && \
-    chown -R karl:karl /app/logs /app/reports
-
-# Switch to non-root user
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash karl
+RUN chown -R karl:karl /app
 USER karl
 
 # Expose port
@@ -66,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Default command
-CMD ["python", "-m", "uvicorn", "corehub.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "run", "uvicorn", "corehub.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
