@@ -6,10 +6,8 @@ services:
     region: oregon
     plan: free
     buildCommand: |
-      pip install poetry
-      poetry config virtualenvs.create false
-      poetry install --no-dev
-    startCommand: poetry run uvicorn corehub.api.main:app --host 0.0.0.0 --port $PORT
+      pip install -r requirements.txt
+    startCommand: uvicorn corehub.api.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -39,17 +37,15 @@ services:
         value: https://karl-ai-corehub.onrender.com
     healthCheckPath: /
 
-  # DevAgent - Background Worker
-  - type: worker
+  # DevAgent - Web Service (instead of worker for free plan)
+  - type: web
     name: karl-ai-devagent
     env: python
     region: oregon
     plan: free
     buildCommand: |
-      pip install poetry
-      poetry config virtualenvs.create false
-      poetry install --no-dev
-    startCommand: poetry run python agents/devagent/app/main.py loop --interval 300
+      pip install -r requirements.txt
+    startCommand: python agents/devagent/app/main.py loop --interval 300
     envVars:
       - key: ENVIRONMENT
         value: production
