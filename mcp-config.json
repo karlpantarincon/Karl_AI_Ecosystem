@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "karl-ai-ecosystem": {
+      "command": "python",
+      "args": ["mcp-server.py"],
+      "env": {
+        "ENVIRONMENT": "production",
+        "DATABASE_URL": "postgresql://karl_ai_db_user:ezn3WjgVE1O7VE8OArBo81hjGRcyriKZ@dpg-d3tcmtf5r7bs73en3ed0-a/karl_ai_db",
+        "COREHUB_URL": "http://localhost:8000",
+        "DASHBOARD_URL": "http://localhost:3000"
+      }
+    }
+  }
+}

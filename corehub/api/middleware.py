@@ -13,7 +13,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from corehub.api.schemas import ErrorResponse
+# Removed ErrorResponse import - using dict directly
 
 
 class SecurityHeadersMiddleware:
@@ -154,25 +154,25 @@ class ErrorHandlingMiddleware:
             await self.app(scope, receive, send)
         except HTTPException as e:
             # Handle HTTP exceptions
-            error_response = ErrorResponse(
-                error=e.detail,
-                details={"status_code": e.status_code}
-            )
+            error_response = {
+                "error": e.detail,
+                "details": {"status_code": e.status_code}
+            }
             response = JSONResponse(
                 status_code=e.status_code,
-                content=error_response.dict()
+                content=error_response
             )
             await response(scope, receive, send)
         except Exception as e:
             # Handle unexpected errors
             logger.error(f"Unexpected error: {e}")
-            error_response = ErrorResponse(
-                error="Internal server error",
-                details={"type": type(e).__name__}
-            )
+            error_response = {
+                "error": "Internal server error",
+                "details": {"type": type(e).__name__}
+            }
             response = JSONResponse(
                 status_code=500,
-                content=error_response.dict()
+                content=error_response
             )
             await response(scope, receive, send)
 
