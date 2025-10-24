@@ -1,12 +1,11 @@
-# Karl AI Ecosystem - Production Requirements
-# Generated for Render.com deployment
+# Karl AI Ecosystem - Simplified Requirements for Render
+# Optimized for cloud deployment without compilation issues
 
-# FastAPI and ASGI
+# Core FastAPI
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-gunicorn==21.2.0
 
-# Database
+# Database (PostgreSQL)
 sqlalchemy==2.0.23
 alembic==1.12.1
 psycopg2-binary==2.9.9
@@ -14,37 +13,25 @@ psycopg2-binary==2.9.9
 # HTTP and WebSockets
 httpx==0.25.2
 websockets==12.0
-aiofiles==23.2.1
 
-# Data Processing
-pydantic==2.5.0
+# Data Processing (simplified versions)
+pydantic==2.4.2
 python-multipart==0.0.6
+
+# Authentication (simplified)
 python-jose[cryptography]==3.3.0
 
-# Scheduling
+# Scheduler
 apscheduler==3.10.4
 
-# Caching and Performance
-redis==5.0.1
-python-memcached==1.62
-
-# Notifications
+# HTTP Requests
 requests==2.31.0
 
-# Monitoring and Logging
+# Logging
 loguru==0.7.2
-prometheus-client==0.19.0
 
-# Development Tools
-pytest==7.4.3
-pytest-cov==4.1.0
-pytest-asyncio==0.21.1
-
-# Security
-cryptography==41.0.7
-passlib[bcrypt]==1.7.4
-
-# Utilities
+# Environment
 python-dotenv==1.0.0
-click==8.1.7
-rich==13.7.0
+
+# File handling
+aiofiles==23.2.1
