@@ -5,13 +5,19 @@ Sistema de Alertas Avanzadas para Karl AI Ecosystem
 import asyncio
 import smtplib
 import json
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, asdict
 from enum import Enum
 import requests
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+try:
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+except ImportError:
+    # Fallback para versiones de Python
+    from email.MIMEText import MIMEText
+    from email.MIMEMultipart import MIMEMultipart
 
 from loguru import logger
 
@@ -86,7 +92,7 @@ class EmailNotificationChannel(NotificationChannel):
         """Enviar alerta por email"""
         try:
             # Crear mensaje
-            msg = MimeMultipart()
+            msg = MIMEMultipart()
             msg['From'] = self.from_email
             msg['To'] = ', '.join(self.to_emails)
             msg['Subject'] = f"[{alert.severity.value.upper()}] {alert.title}"
@@ -109,7 +115,7 @@ class EmailNotificationChannel(NotificationChannel):
             <p><em>Esta alerta fue generada automáticamente por el sistema Karl AI Ecosystem.</em></p>
             """
             
-            msg.attach(MimeText(body, 'html'))
+            msg.attach(MIMEText(body, 'html'))
             
             # Enviar email
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:

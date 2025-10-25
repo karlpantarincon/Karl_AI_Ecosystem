@@ -45,29 +45,26 @@ Ecosistema completo de agentes AI con CoreHub (orquestador) y DevAgent (construc
    cd Karl_AI_Ecosystem
    ```
 
-2. **Instalar dependencias**
+2. **Configurar entorno virtual**
    ```bash
-   poetry install
+   python -m venv venv
+   .\venv\Scripts\activate  # Windows
+   # source venv/bin/activate  # Linux/Mac
    ```
 
-3. **Configurar entorno**
+3. **Instalar dependencias**
    ```bash
-   # El sistema usa SQLite por defecto
-   # No se requiere configuración adicional de base de datos
+   pip install -r requirements.txt
    ```
 
-4. **Arrancar CoreHub**
+4. **Probar el sistema**
    ```bash
-   poetry run uvicorn corehub.api.main:app --reload --port 8000
+   python test.py
    ```
 
-5. **Ejecutar DevAgent**
+5. **Iniciar el sistema**
    ```bash
-   # Una vez
-   poetry run python -m agents.devagent.app.main run_once
-   
-   # Loop continuo con prioridades
-   poetry run python -m agents.devagent.app.main loop --interval 300 --priority 1
+   python start.py
    ```
 
 ## 📋 Uso

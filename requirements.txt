@@ -1,36 +1,50 @@
-# Karl AI Ecosystem - Production Requirements (No Pydantic)
-# FastAPI without Pydantic for cloud deployment
+# Karl AI Ecosystem - Requirements
+# Todas las dependencias necesarias para el sistema completo
 
-# Core FastAPI (without Pydantic)
-fastapi==0.103.2
-uvicorn[standard]==0.23.2
+# FastAPI y servidor
+fastapi>=0.120.0
+uvicorn[standard]>=0.38.0
+pydantic>=2.12.0
+starlette>=0.48.0
 
-# Database (PostgreSQL)
-sqlalchemy==2.0.23
-alembic==1.12.1
-psycopg2-binary==2.9.9
+# Base de datos
+sqlalchemy>=2.0.44
+alembic>=1.17.0
+psycopg2-binary>=2.9.11
 
-# HTTP and WebSockets
-httpx==0.25.2
-websockets==12.0
+# Herramientas de desarrollo
+requests>=2.32.0
+httpx>=0.25.0
+python-multipart>=0.0.6
 
-# Data Processing (no Pydantic)
-python-multipart==0.0.6
+# Logging y monitoreo
+loguru>=0.7.3
+psutil>=7.1.0
 
-# Authentication
-python-jose[cryptography]==3.3.0
+# Scheduler y tareas
+apscheduler>=3.11.0
 
-# Scheduler
-apscheduler==3.10.4
+# Configuración
+python-dotenv>=1.1.0
 
-# HTTP Requests
-requests==2.31.0
+# Validación y email
+email-validator>=2.0.0
+jinja2>=3.1.0
 
-# Logging
-loguru==0.7.2
+# Seguridad
+python-jose[cryptography]>=3.3.0
 
-# Environment
-python-dotenv==1.0.0
+# WebSockets
+websockets>=12.0
 
-# File handling
-aiofiles==23.2.1
+# Archivos
+aiofiles>=23.2.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Utilidades
+colorama>=0.4.6
+typing-extensions>=4.8.0
+annotated-types>=0.6.0
